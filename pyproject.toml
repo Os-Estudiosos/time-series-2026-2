@@ -18,3 +18,8 @@ dependencies = [
     "statsmodels>=0.15.0",
     "threadpoolctl>=3.7.0",
 ]
+
+[dependency-groups]
+dev = [
+    "jupyter>=1.1.1",
+]
