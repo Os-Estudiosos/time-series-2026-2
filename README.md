@@ -18,11 +18,14 @@ uv run --frozen jupyter nbconvert --to notebook --inplace --execute main.ipynb
 
 Isso lê `dados/`, executa o notebook inteiro e regrava na raiz:
 
-- `previsoes_validacao.csv` — 504 linhas (`date`, `series`, `modelo`, `yhat`), incluindo `linear`
-- `metricas.csv` — 18 linhas (`series`, `modelo`, `mae`, `rmse`, `mase`), incluindo `linear`
+- `previsoes_validacao.csv` — 1260 linhas (`date`, `series`, `modelo`, `yhat`), incluindo `linear`, as árvores e os híbridos
+- `metricas.csv` — 45 linhas (`series`, `modelo`, `mae`, `rmse`, `mase`)
+- `metricas_completas.csv` — as mesmas 45 linhas com MAPE, sMAPE e viés
+- `previsoes_holdout.csv` — 84 linhas, árvore escolhida no holdout
 - `figuras/*.png` — diagnóstico e comparação
 
-Tempo de execução: cerca de 6 minutos, dos quais ~5 são o grid search de AICc.
+Tempo de execução: cerca de 9 minutos, dos quais ~5 são o grid search de AICc e
+~3 o backtest das árvores (medido com 2 núcleos; com mais núcleos, menos).
 A seleção temporal de `alpha` do linear usa quatro janelas históricas. Cabe em
 laptop; nada exige nuvem.
 
@@ -32,6 +35,24 @@ Sem `uv`, o equivalente é:
 python -m venv .venv && .venv/bin/pip install -e . \
   && .venv/bin/jupyter nbconvert --to notebook --inplace --execute main.ipynb
 ```
+
+## Task 3 (`tree_models`) — modelos de árvore e híbridos
+
+Seção 11 do `main.ipynb`. Mesmas 54 features e mesma estratégia recursiva do
+linear (seção 9), um ajuste por série, cinco famílias de árvore: árvore de
+decisão, Random Forest, AdaBoost, Gradient Boosting e XGBoost.
+
+- **Seleção sem a validação.** Hiperparâmetros e família vencedora saem de um
+  backtest de origem rolante nas mesmas quatro origens da Task 2 (todas antes de
+  2016-03-27), pelo menor MASE médio. A validação só mede.
+- **Nome no CSV.** As cinco famílias entram com o próprio nome; a escolhida
+  entra também como `arvore` ou `boosting` (o nome que o check exige).
+- **Híbridos.** Média simples das previsões: `sarima_linear`, `sarima_arvore` e
+  `sarima_linear_arvore`.
+- **Holdout.** `previsoes_holdout.csv` (84 linhas) com a família escolhida,
+  reajustada com treino + validação até 2016-04-24 e os mesmos hiperparâmetros.
+- `metricas_completas.csv` traz MAE, RMSE, MASE, MAPE, sMAPE e viés de todos os
+  modelos; `metricas.csv` mantém as cinco colunas do check.
 
 ### Conferir a nota
 

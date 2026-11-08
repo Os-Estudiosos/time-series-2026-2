@@ -67,3 +67,56 @@ da ferramenta foi lido, executado e conferido pelos membros; os resultados
 numéricos do notebook foram reproduzidos do zero e validados contra
 `checks/check_task1.py`. As interpretações estatísticas e as decisões de
 modelagem são de responsabilidade dos autores, não da ferramenta.
+
+---
+
+# Uso de IA generativa — Task 2, classe árvore (`tree_models`, 08/11)
+
+> **Rascunho para revisão do grupo.** Conferir os itens 2 a 4 antes de entregar.
+
+## 1. Ferramentas usadas
+
+- **Claude (Anthropic)** — com acesso ao repositório. Usado para escrever a seção 11
+  do `main.ipynb` (modelos de árvore, híbridos e holdout) e conferi-la contra o
+  `content/enunciado_task2.pdf`.
+
+## 2. Onde ajudou
+
+| Parte | Papel da ferramenta |
+|---|---|
+| Seleção de modelo (11.1) | backtest de origem rolante com as quatro origens da Task 2, grades das cinco famílias |
+| Ajuste e previsão (11.2) | reaproveitamento das features e da recursão das seções 9 e 10 |
+| Híbridos (11.2–11.3) | combinação por média simples de SARIMA, linear e árvore |
+| Holdout (11.4) | reajuste com treino + validação e exportação de `previsoes_holdout.csv` |
+| Métricas | MAPE, sMAPE e viés em `metricas_completas.csv`, sem mudar as colunas de `metricas.csv` |
+
+A escolha das famílias (árvore de decisão, Random Forest, AdaBoost, Gradient Boosting e
+XGBoost) e dos três híbridos foi do grupo.
+
+## 3. Prompts representativos
+
+1. *"Crie uma branch nova chamada tree_models, que será o lugar onde faremos a task 3.
+   [...] Nós iremos fazer Decision Tree, Random Forest, AdaBoost, Gradient Boosting e
+   XGBoost. Nós vamos treinar os modelos com treino.csv, reportar as métricas (MAPE,
+   MASE, MAE, RMSE, etc) com validacao.csv para escolher o melhor modelo e fazer as
+   previsões para holdout_datas.csv com o melhor modelo escolhido."*
+2. *"Vamos fazer mais três modelos: SARIMA + regressão linear, SARIMA + melhor árvore e
+   SARIMA + linear + melhor árvore para ver a comparação entre eles, os baselines e os
+   modelos crus."*
+
+## 4. Pontos corrigidos durante a implementação
+
+1. **Escolha do melhor modelo pela validação.** O pedido inicial era escolher a melhor
+   árvore pelas métricas da `validacao.csv`. O enunciado zera o split nesse caso ("a
+   validação publica; não escolhe"). A seleção passou para o backtest de origem rolante
+   dentro do treino; a validação ficou só para medir. Consequência registrada no
+   notebook: o backtest escolheu uma família que não é a melhor na validação, e não
+   trocamos depois de ver o resultado.
+2. **Holdout no arquivo de validação.** O caminho mais curto seria acrescentar as
+   previsões do holdout a `previsoes_validacao.csv`, o que quebraria a trava da Task 1
+   (nenhuma data fora de 2016-03-28–2016-04-24). Foram para `previsoes_holdout.csv`.
+
+## 5. Responsabilidade
+
+Igual à da Task 1: o grupo leu, executou e conferiu todo o código e responde pelas
+decisões de modelagem.
