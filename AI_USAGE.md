@@ -104,6 +104,11 @@ XGBoost) e dos três híbridos foi do grupo.
    SARIMA + linear + melhor árvore para ver a comparação entre eles, os baselines e os
    modelos crus."*
 
+3. *"No desenvolvimento da regressão, fizemos apenas usando ridge regression. Contudo,
+   quero fazer um comparativo entre regressão sem nenhuma regularização, usando ridge
+   regression, usando lasso e usando elastic net. Dentre esses modelos, vamos escolher o
+   melhor [...]"* — e, no mesmo pedido, as figuras 9 e 15 da Task 1 refeitas.
+
 ## 4. Pontos corrigidos durante a implementação
 
 1. **Escolha do melhor modelo pela validação.** O pedido inicial era escolher a melhor
@@ -112,7 +117,10 @@ XGBoost) e dos três híbridos foi do grupo.
    dentro do treino; a validação ficou só para medir. Consequência registrada no
    notebook: o backtest escolheu uma família que não é a melhor na validação, e não
    trocamos depois de ver o resultado.
-2. **Holdout no arquivo de validação.** O caminho mais curto seria acrescentar as
+2. **Troca do `linear` depois do prazo.** O Lasso venceu o comparativo de regressões,
+   mas o `linear` da Task 2 já tinha sido entregue em 01/11. As linhas `linear` (Ridge)
+   ficaram como estavam; o Lasso entrou como `linear_lasso` e é ele que os híbridos usam.
+3. **Holdout no arquivo de validação.** O caminho mais curto seria acrescentar as
    previsões do holdout a `previsoes_validacao.csv`, o que quebraria a trava da Task 1
    (nenhuma data fora de 2016-03-28–2016-04-24). Foram para `previsoes_holdout.csv`.
 
