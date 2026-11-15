@@ -1,7 +1,7 @@
 [project]
 name = "time-series"
 version = "0.1.0"
-description = "Add your description here"
+description = "Python project for time series analysis and forecasting."
 readme = "README.md"
 authors = [
     { name = "jaopredo", email = "joao.profissional.45@gmail.com" }
@@ -26,13 +26,3 @@ dependencies = [
 dev = [
     "jupyter>=1.1.1",
 ]
-
-# O wheel padrão de Linux do torch arrasta as bibliotecas CUDA (~2-3 GB). Este índice
-# serve a build de CPU, que é a única de que a seção 12 precisa.
-[[tool.uv.index]]
-name = "pytorch-cpu"
-url = "https://download.pytorch.org/whl/cpu"
-explicit = true
-
-[tool.uv.sources]
-torch = [{ index = "pytorch-cpu" }]

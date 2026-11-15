@@ -3,6 +3,13 @@
 Repositório de entregas do curso de Séries Temporais da graduação em Ciência de
 Dados e Inteligência Artificial da Fundação Getulio Vargas.
 
+## Instalação
+Para instalar as dependências do repositório, utilize o comando:
+```
+make setup
+```
+ele cria o ambiente virtual e instala as dependências de acordo com a placa de vídeo instalada no seu computador (se não tiver nenhuma, ele instala os pacotes para CPU)
+
 ## Task 1 e Task 2 — Diagnóstico, baselines, SARIMA e as três classes
 
 Previsão de 28 dias (2016-03-28 a 2016-04-24) para três séries diárias da loja
