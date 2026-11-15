@@ -70,28 +70,43 @@ modelagem são de responsabilidade dos autores, não da ferramenta.
 
 ---
 
-# Uso de IA generativa — Task 2, classe árvore (`tree_models`, 08/11)
+# Uso de IA generativa — Task 2 (features, árvore e rede)
 
 > **Rascunho para revisão do grupo.** Conferir os itens 2 a 4 antes de entregar.
 
+Esta seção cobre as três classes da Task 2 — o `linear` de 01/11 com as features, a
+árvore de 08/11 e a rede de 15/11. A seção da Task 1 acima fica como foi entregue.
+
 ## 1. Ferramentas usadas
 
-- **Claude (Anthropic)** — com acesso ao repositório. Usado para escrever a seção 11
-  do `main.ipynb` (modelos de árvore, híbridos e holdout) e conferi-la contra o
+- **Claude (Anthropic), via Claude Code** — com acesso ao repositório. Usado para
+  escrever as seções 9 a 12 do `main.ipynb` (features e `linear`, modelos de árvore,
+  híbridos, holdout e a classe rede) e conferi-las, item por item, contra o
   `content/enunciado_task2.pdf`.
+
+Nenhuma outra ferramenta de IA generativa foi usada nesta entrega.
 
 ## 2. Onde ajudou
 
 | Parte | Papel da ferramenta |
 |---|---|
+| Features (seção 9) | matriz das 54 colunas: indicadores de dia da semana, seno/cosseno anual e mensal, Natal e véspera, `snap_CA`, indicadores de evento nas duas posições, preço da própria série, lags e médias móveis |
+| Padronização e anti-vazamento (seção 9) | média, desvio e vocabulário de eventos calculados só no treino; recursão que devolve a previsão do próprio modelo como lag |
+| `linear` e regularização (seções 10 e 10.1) | Ridge com intercepto livre via `lstsq`, seleção de `alpha` em quatro origens históricas, comparativo MQO/Ridge/Lasso/Elastic Net |
 | Seleção de modelo (11.1) | backtest de origem rolante com as quatro origens da Task 2, grades das cinco famílias |
 | Ajuste e previsão (11.2) | reaproveitamento das features e da recursão das seções 9 e 10 |
 | Híbridos (11.2–11.3) | combinação por média simples de SARIMA, linear e árvore |
 | Holdout (11.4) | reajuste com treino + validação e exportação de `previsoes_holdout.csv` |
 | Métricas | MAPE, sMAPE e viés em `metricas_completas.csv`, sem mudar as colunas de `metricas.csv` |
+| Rede: arquiteturas (seção 12) | MLP, RNN e LSTM em `torch`, todas sobre as mesmas 54 features e a mesma recursão; nas recorrentes, a janela da própria série entra pela célula e as covariáveis do dia entram na camada de saída |
+| Rede: varredura (12.1) | grades das três famílias e a sondagem de custo que dimensionou a grade antes de rodar os 288 ajustes |
+| Rede: variação por semente (12.4) | reajuste da configuração escolhida com cinco sementes, para separar diferença de arquitetura de ruído de inicialização |
+| Rede: viés do `FOODS` (12.5) | comparação do viés da rede com o da árvore, ligada à limitação de extrapolação registrada em 11.5 |
+| Ambiente | diagnóstico do `torch` e a entrada da build de CPU no `pyproject.toml` |
 
-A escolha das famílias (árvore de decisão, Random Forest, AdaBoost, Gradient Boosting e
-XGBoost) e dos três híbridos foi do grupo.
+A escolha das famílias de árvore (árvore de decisão, Random Forest, AdaBoost, Gradient
+Boosting e XGBoost), dos três híbridos e das três arquiteturas de rede (MLP, RNN e LSTM)
+foi do grupo.
 
 ## 3. Prompts representativos
 
@@ -108,21 +123,45 @@ XGBoost) e dos três híbridos foi do grupo.
    quero fazer um comparativo entre regressão sem nenhuma regularização, usando ridge
    regression, usando lasso e usando elastic net. Dentre esses modelos, vamos escolher o
    melhor [...]"* — e, no mesmo pedido, as figuras 9 e 15 da Task 1 refeitas.
+4. *"Tudo que o `content/enunciado_task2.pdf` pede está implementado em `main.ipynb`?"* —
+   usado como conferência do que faltava antes do último domingo.
+5. *"Se o enunciado não fala nada sobre qual implementar, vamos implementar as três: MLP,
+   LSTM e RNN, e fazer uma comparação. Não esqueça de adicionar varredura de parâmetros em
+   todos os modelos."*
 
-## 4. Pontos corrigidos durante a implementação
+## 4. Erros da IA que o grupo corrigiu
 
-1. **Escolha do melhor modelo pela validação.** O pedido inicial era escolher a melhor
-   árvore pelas métricas da `validacao.csv`. O enunciado zera o split nesse caso ("a
-   validação publica; não escolhe"). A seleção passou para o backtest de origem rolante
-   dentro do treino; a validação ficou só para medir. Consequência registrada no
-   notebook: o backtest escolheu uma família que não é a melhor na validação, e não
-   trocamos depois de ver o resultado.
-2. **Troca do `linear` depois do prazo.** O Lasso venceu o comparativo de regressões,
-   mas o `linear` da Task 2 já tinha sido entregue em 01/11. As linhas `linear` (Ridge)
-   ficaram como estavam; o Lasso entrou como `linear_lasso` e é ele que os híbridos usam.
-3. **Holdout no arquivo de validação.** O caminho mais curto seria acrescentar as
-   previsões do holdout a `previsoes_validacao.csv`, o que quebraria a trava da Task 1
-   (nenhuma data fora de 2016-03-28–2016-04-24). Foram para `previsoes_holdout.csv`.
+1. **Seleção do modelo pelo erro da validação.** O pedido inicial era escolher a melhor
+   árvore pelas métricas de `validacao.csv`, e a ferramenta seguiu por esse caminho. O
+   enunciado zera o critério de split nesse caso ("a validação publica; não escolhe"). A
+   seleção passou para o backtest de origem rolante dentro do treino, nas quatro origens
+   que terminam antes de 2016-03-27, e a validação ficou só para medir. A regra valeu para
+   as três classes: o `alpha` do linear, os hiperparâmetros das cinco árvores e as 24
+   configurações de rede saem todos do backtest. Na rede isso teve duas consequências
+   concretas: **nada de early stopping** (parar o treino pelo erro dos 28 dias é o mesmo
+   vazamento por outra porta) e a tabela de cinco sementes da seção 12.4 é **medição
+   depois do fato** — as linhas entregues são as da semente 2026, fixada antes. Também
+   ficou registrado no notebook que o backtest escolheu uma família de árvore que não é a
+   melhor na validação, e que não trocamos depois de ver o resultado.
+
+2. **Comentário errado sobre o `torch`, e a reprodução quebrada por baixo.** A seção 0 do
+   notebook dizia que o `torch` era "instalado fora do `uv` (build ROCm para GPU AMD)".
+   Na verificação, o que havia era uma build **de CPU** no Python 3.12 do sistema,
+   enquanto o `.venv` do projeto é 3.14 — `import torch` falhava dentro do ambiente que o
+   notebook de fato usa, e o `TORCH_OK` dava `False` em silêncio. Escrever a classe rede
+   sobre essa suposição quebraria o comando de reprodução do `README.md` na máquina de
+   quem corrige. Corrigido com `torch>=2.14,<2.15` no `pyproject.toml`, apontando para o
+   índice CPU-only do PyTorch: o wheel padrão de Linux arrastaria ~2-3 GB de bibliotecas
+   CUDA que nada aqui usa.
+
+3. **Reabrir entrega de domingo que já passou.** Duas vezes o caminho mais curto era
+   reescrever o que já estava entregue. O Lasso venceu o comparativo de regressões depois
+   de 01/11, e a sugestão era promovê-lo a `linear`; as linhas `linear` (Ridge) ficaram
+   como foram entregues e o Lasso entrou como `linear_lasso`. E as previsões do holdout
+   iriam para `previsoes_validacao.csv`, o que violaria a trava de não haver nenhuma data
+   fora de 2016-03-28–2016-04-24; foram para `previsoes_holdout.csv`. A seção 12 segue a
+   mesma regra: só acrescenta linhas, e o notebook confere com `assert` que
+   `naive_sazonal`, `sarima`, `linear` e `boosting` continuam nas três séries.
 
 ## 5. Responsabilidade
 
